@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyber intel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f3f8f7;
+    --border: #dfe8e6;
+    --text-primary: #11302e;
+    --text-secondary: #5c7472;
+    --text-tertiary: #99aaa8;
+    --brand-deep: #006864;
+    --brand-accent: #00a9a8;
+    --priority-high-bg: #fbe9e7;
+    --priority-high-text: #9a3324;
+    --priority-medium-bg: #fcf1dc;
+    --priority-medium-text: #8a5a08;
+    --priority-low-bg: #e9f3e3;
+    --priority-low-text: #3d6b2e;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .page { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; }
+  header.top {
+    display: flex; align-items: baseline; justify-content: space-between;
+    flex-wrap: wrap; gap: 8px; margin-bottom: 28px;
+    border-bottom: 1px solid var(--border); padding-bottom: 20px;
+  }
+  .top h1 { font-size: 22px; font-weight: 600; margin: 0; color: var(--brand-deep); }
+  .top .eyebrow {
+    font-size: 11px; letter-spacing: 0.08em; color: var(--brand-accent);
+    text-transform: uppercase; margin-bottom: 4px; display: block;
+  }
+  .top .meta { font-size: 12px; color: var(--text-tertiary); }
+  section.block { margin-bottom: 22px; }
+  .label { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; }
+  .tier-strip { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tier-pill {
+    border: 1px solid var(--border); background: var(--bg); border-radius: 999px;
+    padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer;
+    display: flex; align-items: center; gap: 6px; color: var(--text-secondary);
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .tier-pill .num { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-tertiary); }
+  .tier-pill.active { background: var(--brand-deep); border-color: var(--brand-deep); color: #ffffff; }
+  .tier-pill.active .num { color: rgba(255,255,255,0.7); }
+  .tier-pill:hover { border-color: var(--brand-accent); }
+  .tier-info {
+    margin-top: 12px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px; font-size: 13px;
+    color: var(--text-secondary); line-height: 1.6;
+  }
+  .tier-info strong { color: var(--brand-deep); font-weight: 600; }
+  .day-strip { display: flex; flex-wrap: wrap; gap: 8px; }
+  .day-pill {
+    border: 1px solid var(--border); background: var(--bg); border-radius: 8px;
+    padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-secondary);
+  }
+  .day-pill.active { background: var(--brand-accent); border-color: var(--brand-accent); color: #ffffff; }
+  .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .filter-bar input[type="text"], .filter-bar select {
+    border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px;
+    font-size: 13px; font-family: inherit; color: var(--text-primary); background: var(--bg);
+  }
+  .filter-bar input[type="text"] { flex: 1; min-width: 200px; }
+  .filter-bar select { min-width: 130px; }
+  .filter-bar button.clear {
+    border: 1px solid var(--border); background: var(--bg); border-radius: 8px;
+    padding: 9px 14px; font-size: 13px; color: var(--text-secondary); cursor: pointer;
+  }
+  .filter-bar button.clear:hover { color: var(--brand-deep); border-color: var(--brand-deep); }
+  .result-count { font-size: 12px; color: var(--text-tertiary); margin: 14px 0 10px; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 880px; }
+  thead th {
+    text-align: left; background: var(--surface); color: var(--text-secondary);
+    font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface); }
+  .date-cell { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-tertiary); white-space: nowrap; }
+  .title-cell { max-width: 280px; }
+  .title-cell a { color: var(--text-primary); font-weight: 500; text-decoration: none; }
+  .title-cell a:hover { color: var(--brand-deep); text-decoration: underline; }
+  .source-cell { color: var(--text-secondary); white-space: nowrap; }
+  .tier-badge {
+    display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    color: var(--brand-deep); background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1px 6px; margin-top: 4px;
+  }
+  .summary-cell { max-width: 340px; color: var(--text-secondary); line-height: 1.45; }
+  .tags-cell { white-space: nowrap; }
+  .badge {
+    display: inline-block; font-size: 11px; font-weight: 600; border-radius: 999px;
+    padding: 3px 9px; margin-right: 4px; margin-bottom: 4px;
+  }
+  .badge.high { background: var(--priority-high-bg); color: var(--priority-high-text); }
+  .badge.medium { background: var(--priority-medium-bg); color: var(--priority-medium-text); }
+  .badge.low { background: var(--priority-low-bg); color: var(--priority-low-text); }
+  .badge.pending { background: var(--surface); color: var(--text-tertiary); border: 1px dashed var(--border); }
+  .badge.category { background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); }
+  .open-cell { text-align: center; }
+  .open-cell a { color: var(--brand-accent); text-decoration: none; font-size: 15px; }
+  .empty-state, .loading-state, .error-state { padding: 40px 20px; text-align: center; color: var(--text-tertiary); font-size: 13px; }
+  .error-state { color: var(--priority-high-text); }
+  @media (max-width: 640px) {
+    .page { padding: 20px 14px 48px; }
+    .top h1 { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="top">
+    <div>
+      <span class="eyebrow">Personal briefing</span>
+      <h1>Cyber intel</h1>
+    </div>
+    <div class="meta mono" id="metaLine">Loading...</div>
+  </header>
+
+  <section class="block">
+    <div class="label">Tiers — click to filter, click again to see what feeds it</div>
+    <div class="tier-strip" id="tierStrip"></div>
+    <div class="tier-info" id="tierInfo"></div>
+  </section>
+
+  <section class="block">
+    <div class="label">Timeline</div>
+    <div class="day-strip" id="dayStrip"></div>
+  </section>
+
+  <section class="block">
+    <div class="label">Filters</div>
+    <div class="filter-bar">
+      <input type="text" id="searchInput" placeholder="Search title, source, summary...">
+      <select id="sourceSelect"><option value="">All sources</option></select>
+      <select id="categorySelect"><option value="">All categories</option></select>
+      <select id="prioritySelect">
+        <option value="">All priorities</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <button class="clear" id="clearBtn">Clear filters</button>
+    </div>
+  </section>
+
+  <div class="result-count" id="resultCount"></div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Title</th>
+          <th>Source</th>
+          <th>Summary</th>
+          <th>Tags</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="6"><div class="loading-state">Loading items...</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+  const TIERS = [
+    { id: 1, name: 'High priority cyber', desc: 'Breaking news, major incidents, and threat actor activity from BleepingComputer, The Hacker News, Krebs on Security, Dark Reading, and Cisco Talos.' },
+    { id: 2, name: 'Vendor research', desc: 'Deeper technical threat research and analysis from vendor blogs: CrowdStrike, Unit 42, Securelist, and Google Project Zero.' },
+    { id: 3, name: 'Frameworks & regulators (cyber)', desc: 'General, cross-sector standards and agency updates: MITRE, ISO, NIST, OWASP, CIS, COBIT, ISACA, SANS, ENISA, CISA, ANSSI, ACN, NCSC-IE, and CNCS.' },
+    { id: 4, name: 'Financial sector (cyber)', desc: 'DORA, FS-ISAC, BCI, and PCI SSC, plus the cyber/ICT-risk output from EBA, ECB, ESMA, and the Portuguese, French, Italian, and Irish central banks.' },
+    { id: 5, name: 'Financial sector (general)', desc: 'Non-security regulatory and market news from the same bodies, plus KPMG and Deloitte insights — anything that is not cyber-specific.' },
+    { id: 6, name: 'AI risk & security', desc: 'MITRE ATLAS, OWASP\u2019s LLM Top 10, the security-relevant parts of NIST\u2019s AI framework, and AI safety research from model providers.' },
+    { id: 7, name: 'AI, general', desc: 'Model releases, capability advances, adoption trends, and broader AI policy coverage \u2014 cyber or not.' }
+  ];
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  function daysAgoFor(rawDate) {
+    if (!rawDate) return 0;
+    const d = new Date(rawDate);
+    d.setHours(0, 0, 0, 0);
+    const diff = Math.round((today - d) / (1000 * 60 * 60 * 24));
+    return diff < 0 ? 0 : diff;
+  }
+
+  function formatDayLabel(offset) {
+    if (offset === 0) return 'Today';
+    if (offset === 1) return 'Yesterday';
+    const d = new Date(today); d.setDate(d.getDate() - offset);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  function formatCellDate(daysAgo, rawDate) {
+    if (daysAgo === 0) return 'Today';
+    if (daysAgo === 1) return 'Yesterday';
+    if (!rawDate) return daysAgo + 'd ago';
+    return new Date(rawDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  let ITEMS = [];
+  let activeTiers = new Set(TIERS.map(t => t.id));
+  let activeDay = 0;
+  let lastInfoTier = 1;
+  let search = '';
+  let sourceFilter = '';
+  let categoryFilter = '';
+  let priorityFilter = '';
+
+  const tierStrip = document.getElementById('tierStrip');
+  const tierInfo = document.getElementById('tierInfo');
+  const dayStrip = document.getElementById('dayStrip');
+  const tableBody = document.getElementById('tableBody');
+  const resultCount = document.getElementById('resultCount');
+  const sourceSelect = document.getElementById('sourceSelect');
+  const categorySelect = document.getElementById('categorySelect');
+  const prioritySelect = document.getElementById('prioritySelect');
+  const searchInput = document.getElementById('searchInput');
+  const metaLine = document.getElementById('metaLine');
+
+  function renderTierInfo() {
+    const t = TIERS.find(t => t.id === lastInfoTier);
+    tierInfo.innerHTML = '<strong>Tier ' + t.id + ' \u2014 ' + t.name + '.</strong> ' + t.desc;
+  }
+
+  function renderTierStrip() {
+    tierStrip.innerHTML = '';
+    TIERS.forEach(t => {
+      const pill = document.createElement('div');
+      pill.className = 'tier-pill' + (activeTiers.has(t.id) ? ' active' : '');
+      pill.innerHTML = '<span class="num">T' + t.id + '</span><span>' + t.name + '</span>';
+      pill.addEventListener('click', () => {
+        if (activeTiers.has(t.id)) { activeTiers.delete(t.id); } else { activeTiers.add(t.id); }
+        lastInfoTier = t.id;
+        renderTierStrip();
+        renderTierInfo();
+        render();
+      });
+      tierStrip.appendChild(pill);
+    });
+  }
+
+  function renderDayStrip() {
+    dayStrip.innerHTML = '';
+    [0, 1, 2, 3].forEach(o => {
+      const pill = document.createElement('div');
+      pill.className = 'day-pill' + (activeDay === o ? ' active' : '');
+      pill.textContent = formatDayLabel(o);
+      pill.addEventListener('click', () => { activeDay = o; renderDayStrip(); render(); });
+      dayStrip.appendChild(pill);
+    });
+    const allPill = document.createElement('div');
+    allPill.className = 'day-pill' + (activeDay === 'all' ? ' active' : '');
+    allPill.textContent = 'All recent';
+    allPill.addEventListener('click', () => { activeDay = 'all'; renderDayStrip(); render(); });
+    dayStrip.appendChild(allPill);
+  }
+
+  function populateSelect(select, values, placeholder) {
+    select.innerHTML = '<option value="">' + placeholder + '</option>';
+    [...new Set(values.filter(Boolean))].sort().forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = v;
+      select.appendChild(opt);
+    });
+  }
+
+  function badgeClass(priority) {
+    if (priority === 'High') return 'high';
+    if (priority === 'Medium') return 'medium';
+    if (priority === 'Low') return 'low';
+    return 'pending';
+  }
+
+  function render() {
+    const filtered = ITEMS.filter(item => {
+      if (!activeTiers.has(item.tier)) return false;
+      if (activeDay !== 'all' && item._daysAgo !== activeDay) return false;
+      if (sourceFilter && item.source !== sourceFilter) return false;
+      if (categoryFilter && item.category !== categoryFilter) return false;
+      if (priorityFilter && item.priority !== priorityFilter) return false;
+      if (search) {
+        const haystack = (item.title + ' ' + item.source + ' ' + (item.summary || '') + ' ' + (item.category || '')).toLowerCase();
+        if (!haystack.includes(search.toLowerCase())) return false;
+      }
+      return true;
+    }).sort((a, b) => new Date(b._sortDate) - new Date(a._sortDate));
+
+    resultCount.textContent = filtered.length + ' item' + (filtered.length === 1 ? '' : 's');
+
+    tableBody.innerHTML = '';
+    if (filtered.length === 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td colspan="6"><div class="empty-state">Nothing matches these filters. Try widening the tier or day selection.</div></td>';
+      tableBody.appendChild(tr);
+      return;
+    }
+
+    filtered.forEach(item => {
+      const tr = document.createElement('tr');
+      const summary = item.summary || 'Tagging pending or unavailable for this item.';
+      const tagsHtml =
+        '<span class="badge ' + badgeClass(item.priority) + '">' + (item.priority || 'Pending') + '</span>' +
+        (item.category ? '<span class="badge category">' + item.category + '</span>' : '');
+      tr.innerHTML =
+        '<td class="date-cell">' + formatCellDate(item._daysAgo, item._sortDate) + '</td>' +
+        '<td class="title-cell"><a href="' + item.url + '" target="_blank" rel="noopener">' + item.title + '</a><br><span class="tier-badge">T' + item.tier + '</span></td>' +
+        '<td class="source-cell">' + item.source + '</td>' +
+        '<td class="summary-cell">' + summary + '</td>' +
+        '<td class="tags-cell">' + tagsHtml + '</td>' +
+        '<td class="open-cell"><a href="' + item.url + '" target="_blank" rel="noopener" title="Open link">\u2197</a></td>';
+      tableBody.appendChild(tr);
+    });
+  }
+
+  searchInput.addEventListener('input', e => { search = e.target.value; render(); });
+  sourceSelect.addEventListener('change', e => { sourceFilter = e.target.value; render(); });
+  categorySelect.addEventListener('change', e => { categoryFilter = e.target.value; render(); });
+  prioritySelect.addEventListener('change', e => { priorityFilter = e.target.value; render(); });
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    search = ''; sourceFilter = ''; categoryFilter = ''; priorityFilter = '';
+    searchInput.value = ''; sourceSelect.value = ''; categorySelect.value = ''; prioritySelect.value = '';
+    activeTiers = new Set(TIERS.map(t => t.id));
+    activeDay = 0;
+    renderTierStrip();
+    renderDayStrip();
+    render();
+  });
+
+  renderTierStrip();
+  renderTierInfo();
+  renderDayStrip();
+
+  fetch('/.netlify/functions/get-items')
+    .then(res => {
+      if (!res.ok) throw new Error('Request failed with status ' + res.status);
+      return res.json();
+    })
+    .then(data => {
+      if (data.error) throw new Error(data.error);
+      ITEMS = data.map(row => {
+        const rawDate = row.published_at || row.fetched_at;
+        return Object.assign({}, row, {
+          _daysAgo: daysAgoFor(rawDate),
+          _sortDate: rawDate
+        });
+      });
+      populateSelect(sourceSelect, ITEMS.map(i => i.source), 'All sources');
+      populateSelect(categorySelect, ITEMS.map(i => i.category), 'All categories');
+      metaLine.textContent = 'Updated ' + new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) + ' \u00b7 ' + ITEMS.length + ' items loaded';
+      render();
+    })
+    .catch(err => {
+      metaLine.textContent = 'Failed to load';
+      tableBody.innerHTML = '<tr><td colspan="6"><div class="error-state">Could not load items: ' + err.message + '</div></td></tr>';
+    });
+</script>
+</body>
+</html>
