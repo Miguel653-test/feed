@@ -80,6 +80,7 @@
     color: var(--text-secondary); line-height: 1.6;
   }
   .tier-info strong { color: var(--brand-deep); font-weight: 600; }
+  .tier-info > div + div { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
   .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   .filter-bar input[type="text"], .filter-bar select {
     border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px;
@@ -165,6 +166,7 @@
     </div>
     <div class="meta mono">
       <span id="metaLine">Loading...</span>
+      <a class="refresh-btn" href="sources.html" style="text-decoration:none;">Sources</a>
       <button class="refresh-btn" id="refreshBtn" type="button">Refresh</button>
     </div>
   </header>
@@ -199,13 +201,6 @@
         <option value="High">High</option>
         <option value="Medium">Medium</option>
         <option value="Low">Low</option>
-      </select>
-      <select id="relevanceSelect">
-        <option value="">Any relevance</option>
-        <option value="5">5 only</option>
-        <option value="4">4+</option>
-        <option value="3">3+</option>
-        <option value="2">2+</option>
       </select>
       <button class="clear" id="clearBtn" type="button">Clear filters</button>
     </div>
@@ -273,8 +268,7 @@
   function formatDayLabel(offset) {
     if (offset === 0) return 'Today';
     if (offset === 1) return 'Yesterday';
-    const d = new Date(today); d.setDate(d.getDate() - offset);
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return offset + ' days ago';
   }
   function formatCellDate(daysAgo, rawDate) {
     if (daysAgo === 0) return 'Today';
@@ -291,7 +285,6 @@
   let sourceFilter = '';
   let categoryFilter = '';
   let priorityFilter = '';
-  let relevanceFilter = '';
   let unreadOnly = false;
   let starredOnly = false;
   let lastLoaded = null;
@@ -304,15 +297,20 @@
   const sourceSelect = document.getElementById('sourceSelect');
   const categorySelect = document.getElementById('categorySelect');
   const prioritySelect = document.getElementById('prioritySelect');
-  const relevanceSelect = document.getElementById('relevanceSelect');
   const searchInput = document.getElementById('searchInput');
   const metaLine = document.getElementById('metaLine');
   const unreadToggle = document.getElementById('unreadToggle');
   const starredToggle = document.getElementById('starredToggle');
 
   function renderTierInfo() {
-    const t = TIERS.find(t => t.id === lastInfoTier);
-    tierInfo.innerHTML = '<strong>Tier ' + t.id + ' \u2014 ' + escapeHtml(t.name) + '.</strong> ' + escapeHtml(t.desc);
+    const active = TIERS.filter(t => activeTiers.has(t.id));
+    if (active.length === 0) {
+      tierInfo.innerHTML = '<strong>No tiers selected.</strong> Click a tier above to include it.';
+      return;
+    }
+    tierInfo.innerHTML = active.map(t =>
+      '<div><strong>Tier ' + t.id + ' \u2014 ' + escapeHtml(t.name) + '.</strong> ' + escapeHtml(t.desc) + '</div>'
+    ).join('');
   }
 
   function renderTierStrip() {
@@ -336,7 +334,7 @@
 
   function renderDayStrip() {
     dayStrip.innerHTML = '';
-    [0, 1, 2, 3].forEach(o => {
+    [0, 1, 2].forEach(o => {
       const pill = document.createElement('button');
       pill.type = 'button';
       pill.className = 'day-pill' + (activeDay === o ? ' active' : '');
@@ -400,7 +398,6 @@
       if (sourceFilter && item.source !== sourceFilter) return false;
       if (categoryFilter && item.category !== categoryFilter) return false;
       if (priorityFilter && item.priority !== priorityFilter) return false;
-      if (relevanceFilter && (item.relevance_score || 0) < Number(relevanceFilter)) return false;
       if (search) {
         const haystack = (item.title + ' ' + item.source + ' ' + (item.summary || '') + ' ' +
           (item.category || '') + ' ' + (item.framework_tags || []).join(' ')).toLowerCase();
@@ -429,14 +426,11 @@
       const summary = escapeHtml(item.summary || 'Tagging pending or unavailable for this item.');
       const dateApprox = !item.published_at;
 
-      const scoreBadge = item.relevance_score
-        ? '<span class="badge score">R' + escapeHtml(item.relevance_score) + '</span>' : '';
       const fwChips = (item.framework_tags || [])
         .map(t => '<span class="chip">' + escapeHtml(t) + '</span>').join('');
 
       const tagsHtml =
         '<span class="badge ' + badgeClass(item.priority) + '">' + escapeHtml(item.priority || 'Pending') + '</span>' +
-        scoreBadge +
         (item.category ? '<span class="badge category">' + escapeHtml(item.category) + '</span>' : '') +
         (fwChips ? '<br>' + fwChips : '');
 
@@ -474,7 +468,6 @@
   sourceSelect.addEventListener('change', e => { sourceFilter = e.target.value; render(); });
   categorySelect.addEventListener('change', e => { categoryFilter = e.target.value; render(); });
   prioritySelect.addEventListener('change', e => { priorityFilter = e.target.value; render(); });
-  relevanceSelect.addEventListener('change', e => { relevanceFilter = e.target.value; render(); });
 
   unreadToggle.addEventListener('click', () => {
     unreadOnly = !unreadOnly;
@@ -490,10 +483,10 @@
   });
 
   document.getElementById('clearBtn').addEventListener('click', () => {
-    search = ''; sourceFilter = ''; categoryFilter = ''; priorityFilter = ''; relevanceFilter = '';
+    search = ''; sourceFilter = ''; categoryFilter = ''; priorityFilter = '';
     unreadOnly = false; starredOnly = false;
     searchInput.value = ''; sourceSelect.value = ''; categorySelect.value = '';
-    prioritySelect.value = ''; relevanceSelect.value = '';
+    prioritySelect.value = '';
     unreadToggle.classList.remove('active'); unreadToggle.setAttribute('aria-pressed', 'false');
     starredToggle.classList.remove('active'); starredToggle.setAttribute('aria-pressed', 'false');
     activeTiers = new Set(TIERS.map(t => t.id));
